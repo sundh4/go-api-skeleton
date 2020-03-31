@@ -1,0 +1,498 @@
+basePath: /api/v1
+definitions:
+  model.BadResp:
+    properties:
+      isSuccess:
+        example: false
+        type: boolean
+      message:
+        example: Bad request/Invalid json
+        type: string
+      value:
+        example: '{}'
+        type: string
+    type: object
+  model.EmptyResp:
+    properties:
+      isSuccess:
+        type: boolean
+      message:
+        type: string
+      value:
+        type: string
+    type: object
+  model.ForbResp:
+    properties:
+      isSuccess:
+        example: false
+        type: boolean
+      message:
+        example: Invalid credential
+        type: string
+      value:
+        example: '{}'
+        type: string
+    type: object
+  model.InErrResp:
+    properties:
+      isSuccess:
+        example: false
+        type: boolean
+      message:
+        example: Internal Server Error
+        type: string
+      value:
+        example: '{}'
+        type: string
+    type: object
+  model.LoginUser:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  model.Password:
+    properties:
+      newPass:
+        type: string
+      oldPass:
+        type: string
+    type: object
+  model.Profile:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      isAdmin:
+        default: 0
+        type: integer
+      lastName:
+        type: string
+      status:
+        default: 3
+        type: integer
+      userid:
+        type: integer
+      username:
+        type: string
+    type: object
+  model.ProfileResp:
+    properties:
+      isSuccess:
+        type: boolean
+      message:
+        type: string
+      value:
+        $ref: '#/definitions/model.Profile'
+        type: object
+    type: object
+  model.ProfileTokResp:
+    properties:
+      isSuccess:
+        type: boolean
+      message:
+        type: string
+      value:
+        $ref: '#/definitions/model.ProfileToken'
+        type: object
+    type: object
+  model.ProfileToken:
+    properties:
+      email:
+        type: string
+      firstName:
+        type: string
+      isAdmin:
+        default: 0
+        type: integer
+      lastName:
+        type: string
+      status:
+        default: 3
+        type: integer
+      token:
+        type: string
+      userid:
+        type: integer
+      username:
+        type: string
+    type: object
+  model.RegisUser:
+    properties:
+      email:
+        example: surya@omitsindo.com
+        type: string
+      firstName:
+        example: First name
+        type: string
+      lastName:
+        example: Last name
+        type: string
+      password:
+        example: more than 6 char
+        type: string
+      username:
+        example: Username
+        type: string
+    type: object
+  model.UnAuthResp:
+    properties:
+      isSuccess:
+        example: false
+        type: boolean
+      message:
+        example: Unauthorized
+        type: string
+      value:
+        example: '{}'
+        type: string
+    type: object
+  model.UpdateProfile:
+    properties:
+      email:
+        example: surya@omitsindo.com
+        type: string
+      firstName:
+        example: leave empty if don't want to update
+        type: string
+      lastName:
+        example: leave empty if don't want to update
+        type: string
+    type: object
+host: go.omitsindo.com
+info:
+  contact:
+    email: surya@omitsindo.com
+    name: Surya
+    url: https://www.omitsindo.com
+  description: For serve swagger ui
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Swagger for Go REST API
+  version: 1.0.0
+paths:
+  /user/confirm:
+    get:
+      consumes:
+      - application/json
+      description: Update profile for current user.
+      parameters:
+      - description: Secret token that sent to email
+        in: query
+        name: s
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User Confirmed
+          schema:
+            $ref: '#/definitions/model.EmptyResp'
+        "400":
+          description: Empty Token Confirmation
+          schema:
+            $ref: '#/definitions/model.BadResp'
+        "403":
+          description: Invalid Token Confirmation
+          schema:
+            $ref: '#/definitions/model.ForbResp'
+      summary: To activate user based on Email confirmation
+      tags:
+      - User API
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Login will return token, admin status and user profile
+      parameters:
+      - description: Login by Username
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProfileTokResp'
+        "400":
+          description: Invalid payload
+          schema:
+            $ref: '#/definitions/model.BadResp'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "403":
+          description: Invalid credential
+          schema:
+            $ref: '#/definitions/model.ForbResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      summary: Login User
+      tags:
+      - Auth API
+  /user/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout user and remove auth token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.EmptyResp'
+            type: array
+        "401":
+          description: Unauthorize
+          schema:
+            items:
+              $ref: '#/definitions/model.UnAuthResp'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Logout User
+      tags:
+      - Auth API
+  /user/password:
+    post:
+      consumes:
+      - application/json
+      description: Change password for current user
+      parameters:
+      - description: Current and old password
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.Password'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed
+          schema:
+            $ref: '#/definitions/model.ProfileResp'
+        "400":
+          description: Invalid payload/password
+          schema:
+            $ref: '#/definitions/model.BadResp'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Change Password
+      tags:
+      - User API
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Only retrive profile for own user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProfileResp'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Get Current Profile
+      tags:
+      - User API
+    post:
+      consumes:
+      - application/json
+      description: Update profile for current user.
+      parameters:
+      - description: User data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated
+          schema:
+            $ref: '#/definitions/model.EmptyResp'
+        "400":
+          description: Invalid payload
+          schema:
+            $ref: '#/definitions/model.BadResp'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "403":
+          description: Already in use
+          schema:
+            $ref: '#/definitions/model.ForbResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Update Profile
+      tags:
+      - User API
+  /user/profile/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile by id only for admin user
+      parameters:
+      - description: UserID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ProfileResp'
+        "401":
+          description: Unauthorize, Need admin privileges
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Get User Profile by UserID
+      tags:
+      - User API
+    post:
+      consumes:
+      - application/json
+      description: Update only for admin user
+      parameters:
+      - description: UserID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated
+          schema:
+            $ref: '#/definitions/model.EmptyResp'
+        "400":
+          description: Invalid payload
+          schema:
+            $ref: '#/definitions/model.BadResp'
+        "401":
+          description: Unauthorize
+          schema:
+            $ref: '#/definitions/model.UnAuthResp'
+        "403":
+          description: Already in use or user not found
+          schema:
+            $ref: '#/definitions/model.ForbResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Update User Profile by UserID
+      tags:
+      - User API
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: To add to admin, add param in url as ?isAdmin=true
+      parameters:
+      - description: User data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/model.RegisUser'
+      - description: Is admin true or false
+        in: query
+        name: isAdmin
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Profile'
+            type: array
+        "500":
+          description: Many failure messages
+          schema:
+            $ref: '#/definitions/model.InErrResp'
+      security:
+      - Bearer Token: []
+      summary: Register a User
+      tags:
+      - User API
+schemes:
+- https
+securityDefinitions:
+  Bearer Token:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: All user API operation
+  name: User API
+- description: Authentication user API
+  name: Auth API
+x-extension-openapi:
+  example: value on a json format
